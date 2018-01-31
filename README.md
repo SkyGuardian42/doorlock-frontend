@@ -1,6 +1,6 @@
 # vuetest
 
-> doorlock test
+> Vue Frontend fürs Türschloss des Informatikraums
 
 ## Build Setup
 
