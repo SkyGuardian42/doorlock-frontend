@@ -19,6 +19,7 @@ export default {
 <style lang="scss" scoped>
 nav {
 	position: fixed;
+	height: 66px;
 	bottom: 0;
 	left: 0;
 	width: 100%;
@@ -48,5 +49,10 @@ nav {
 			margin-right: 1px;
 		}
 	}
+}
+@media (max-width: 600px) {
+		nav {
+			height: 55px;
+		}
 }
 </style>
