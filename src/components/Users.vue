@@ -19,6 +19,9 @@ export default {
 	components: {
 		UserListing
 	},
+	created() {
+		
+	},
 	data(){ return {
 		users: [
 			{

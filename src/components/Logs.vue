@@ -23,7 +23,7 @@ export default {
 		rawLogsMock: [{"user":"me@malts.me","action":"Tür geöffnet","createdAt":"2018-02-03T15:23:57.277Z"},{"user":"me@malts.me","action":"Tür geöffnet","createdAt":"2018-02-03T15:20:03.807Z"},{"user":"me@malts.me","action":"Tür geöffnet","createdAt":"2018-02-03T15:19:11.337Z"},{"user":"me@malts.me","action":"Tür geöffnet","createdAt":"2018-02-03T01:33:38.437Z"},{"user":"me@malts.me","action":"Tür geöffnet","createdAt":"2018-02-03T01:33:37.181Z"},{"user":"me@malts.me","action":"Tür geöffnet","createdAt":"2018-02-03T01:33:15.140Z"},{"user":"me@malts.me","action":"Tür geöffnet","createdAt":"2018-02-03T01:32:59.934Z"},{"user":"me@malts.me","action":"Tür geöffnet","createdAt":"2018-02-03T01:32:45.189Z"},{"user":"me@malts.me","action":"Tür geöffnet","createdAt":"2018-02-03T00:06:35.556Z"},{"user":"me@malts.me","action":"Tür geöffnet","createdAt":"2018-02-03T00:06:34.512Z"},{"user":"me@malts.me","action":"Tür geöffnet","createdAt":"2018-02-01T23:53:25.146Z"}]
 	}},
 	created() {
-		fetch('/logs', {
+		fetch('/api/logs', {
       	method: "POST",
 				headers: {"Content-Type": "application/json"},
 				body: JSON.stringify({
@@ -42,7 +42,7 @@ export default {
 			const weekdays = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag']
 			const months = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember']
 	
-			this.rawLogsMock.forEach(log => {
+			this.rawLogs.forEach(log => {
 				let date = new Date(log.createdAt)
 				let dateString = `${date.getDate()<10?'0':''}${date.getDate()}.${date.getMonth()<10?'0':''}${date.getMonth()}.${date.getFullYear()}`
 				let found = false

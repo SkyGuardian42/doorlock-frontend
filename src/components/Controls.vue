@@ -15,7 +15,7 @@ export default {
 			firebase.auth().signOut().then(() => this.$emit('navigation', 'Login'))
 		},
 		open() {
-			fetch('/open', {
+			fetch('/api/open', {
       	method: "POST",
      		body: JSON.stringify({token: this.token}),
       	headers: {"Content-Type": "application/json"}
