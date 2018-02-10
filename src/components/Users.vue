@@ -1,49 +1,100 @@
 <template>
 	<section>
-		<input type="text" placeholder="name">
-		<input type="email" placeholder="email">
-		<div class="button">hinzufügen</div>
+		<Modal v-if="modalText !== ''" :text="modalText" v-on:close="modalText = ''" />
+
+		<form v-on:submit.prevent="createUser">
+			<input v-model="newUser.name" type="text" placeholder="name" required tabindex="0">
+			<input v-model="newUser.email" type="email" placeholder="email" tabindex="0" required>
+			<div class="split">
+				<input type="submit" @click="newUser.admin = true" value="+ 👑" class="button">
+				<input type="submit" @click="newUser.admin = false" value="+ 🙂" class="button">
+
+			</div>
+		</form>
 
 		<div class="user-search">
-			<input type="text" placeholder="suche">
-			<div class="button">🔎</div>
+			<input disabled type="text" placeholder="suche" tabindex="0">
+			<div disabled class="button" tabindex="0">🔎</div>
 		</div>
-
-		 <UserListing v-for="user in users" :user="user" :key="user.uid"/>	
+		<Spinner v-if="users.length === 0"/>
+		<UserListing v-for="user in users" :user="user" :key="user.uid"/>	
 	</section>
 </template>
 
 <script>
+const firebase = require('firebase/app')
+require('firebase/auth')
+
 import UserListing from './UserListing'
+import Modal from './Modal'
+import Spinner from './Spinner'
 export default {
 	components: {
-		UserListing
+		UserListing,
+		Modal,
+		Spinner
 	},
+	props: ['storedUsers'],
 	created() {
-		
+		this.users = this.storedUsers;
+
+		firebase.auth().currentUser.getIdToken(true)
+		.then(token => {
+			fetch('/api/users', {
+				method: "POST",
+				body: JSON.stringify({token: token}),
+				headers: {"Content-Type": "application/json"}
+			})
+			.then(data => data.json())
+			.then(json => {
+				this.$emit('update:storedUsers', json);
+				this.users = json;
+			})
+		})
 	},
 	data(){ return {
-		users: [
-			{
-				name: "Malte Janßen",
-				email: "me@malts.me",
-				uid: "bNRqk6WFRz6g",
-				admin: true
-			},
-			{
-				name: "Lennard Kleyman",
-				email: "mail@lennard.tech",
-				uid: "ZHrkTlvMMf17",
-				admin: true
-			},
-			{
-				name: "Kerstin Rolfes",
-				email: "rolfes@hgo-ol.de",
-				uid: "lEbfITVmRAmz",
-				admin: false
+		users: [],
+		modalText: '',
+		newUser: {
+			email: '',
+			name: '',
+			admin: false
+		},
+		mailRegex: ''
+	}},
+	methods: {
+		createUser() {
+			let testRegex = /^(([A-Z]|[\u00C0-\u00DF])([a-z]|[\u00E0-\u00FF]|\u00DF)+ ?){2,}$/g;
+			
+			if(!testRegex.test(this.newUser.name)) {
+				this.modalText = `Name im falschen Format`
+				return;
 			}
-		]
-	}}
+			firebase.auth().currentUser.getIdToken(true)
+			.then(token => {
+				fetch('/api/user', {
+					method: "PUT",
+					body: JSON.stringify({
+						token: token,
+						name: this.newUser.name,
+						email: this.newUser.email,
+						admin: this.newUser.admin
+					}),
+					headers: {"Content-Type": "application/json"}
+				})
+				.then(data => data.json())
+				.then(json => {
+					this.newUser.email = '';
+					this.newUser.name = '';
+					this.modalText = 'Nutzer erstellt';
+				})
+				.catch(e => this.modalText = 'Irgendwas ist mit der Anfrage falsch gelaufen')
+
+			})
+
+		}
+	}
+
 }
 </script>
 
@@ -51,7 +102,7 @@ export default {
 	section {
 		background: #fff;
 
-		> *{
+		> div:not(.modal), form > input{
 			border-bottom: 1px solid #000;
 		}
 	}
@@ -68,5 +119,12 @@ export default {
 			padding-right: 5rem;
 		}
 
+	}
+	.split {
+		display: flex;
+		border-bottom: 1px solid black;
+		input:not(:last-child) {
+			border-right: 1px solid black;
+		}
 	}
 </style>

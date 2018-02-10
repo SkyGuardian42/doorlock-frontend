@@ -1,5 +1,8 @@
  <template>
 	<div class="listing">
+		<Modal v-if="modalText.length !== 0" :text="modalText" v-on:close="modalText = ''"/>
+		<Modal v-if="deleteText.length !== 0" :text="deleteText" v-on:close="action => deleteUser(action)" :actions="[{text:'Nein', return: false}, {text: 'Ja', return: true}]"/>
+
 		<div class="user-info">
 				<p class="name">{{ user.name }}</p>
 				<p class="mail">{{ user.email }}</p>
@@ -7,22 +10,75 @@
 			<div class="role button" v-if="!user.admin" @click="changeRole">🙂</div>
 			<div class="role button" v-if="user.admin" @click="changeRole">👑</div>
 			<div class="reset-mail button" @click="resetPassword">♻️</div>
-			<div class="delete button" @click="deleteUser">🗑️</div>
+			<div class="delete button" @click="deleteUser(undefined)">🗑️</div>
 	</div>
 </template>
 
 <script>
+const firebase = require('firebase/app');
+require('firebase/auth');
+import Modal from './Modal'
+
 export default {
 	props: ['user'],
+	components: {
+		Modal
+	},
+	data() {return {
+		modalText: '',
+		deleteText: ''
+	}},
 	methods: {
 		changeRole() {
-			console.log('change users role to ' + (this.user.admin? 'user: ' : 'admin: ') + this.user.uid)
+			firebase.auth().currentUser.getIdToken(true)
+			.then(token => {
+				fetch('/api/user', {
+					method: "PATCH",
+					body: JSON.stringify({
+						token: token,
+						uid: this.user.uid,
+						admin: !this.user.admin
+					}),
+					headers: {"Content-Type": "application/json"}
+				})
+				.then(data => data.json())
+				.then(json => {
+					this.modalText = json.status;
+				})
+			})
+			.catch(e => this.modalText = e.message)
 		},
 		resetPassword() {
-			console.log('reset password of user: ' + this.user.email)
+			firebase.auth().sendPasswordResetEmail(this.user.email)
+			.then(()=>{
+				this.modalText = `"${this.user.name}" hat eine Email zur Passwortzurücksetzung erhalten`
+			})
+			.catch(e => this.modalText = e.message)
 		},
-		deleteUser() {
-			console.log('delete user: ' + this.user.uid)
+		deleteUser(accepted) {
+			if (typeof accepted === 'undefined') {
+				this.deleteText = `Sicher dass du den Nutzer "${this.user.name}" endgültig löschen willst?`;
+			} else if(!accepted) {
+				this.deleteText = '';
+			} else {
+				firebase.auth().currentUser.getIdToken(true)
+				.then(token => {
+					fetch('/api/user', {
+						method: "DELETE",
+						body: JSON.stringify({
+							token: token,
+							uid: this.user.uid
+						}),
+						headers: {"Content-Type": "application/json"}
+					})
+					.then(data => data.json())
+					.then(json => {
+						this.modalText = json.status;
+						this.deleteText = '';
+					})
+				})
+				.catch(e => this.modalText = e.message)
+			}
 		}
 	}
 }
