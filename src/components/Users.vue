@@ -17,7 +17,7 @@
 			<div disabled class="button" tabindex="0">🔎</div>
 		</div>
 		<Spinner v-if="users.length === 0"/>
-		<UserListing v-for="user in users" :user="user" :key="user.uid"/>	
+		<UserListing v-for="user in users" :user="user" :key="user.uid" v-on:delete="deleteUser"/>	
 	</section>
 </template>
 
@@ -37,20 +37,7 @@ export default {
 	props: ['storedUsers'],
 	created() {
 		this.users = this.storedUsers;
-
-		firebase.auth().currentUser.getIdToken(true)
-		.then(token => {
-			fetch('/api/users', {
-				method: "POST",
-				body: JSON.stringify({token: token}),
-				headers: {"Content-Type": "application/json"}
-			})
-			.then(data => data.json())
-			.then(json => {
-				this.$emit('update:storedUsers', json);
-				this.users = json;
-			})
-		})
+		this.loadUsers();
 	},
 	data(){ return {
 		users: [],
@@ -92,6 +79,25 @@ export default {
 
 			})
 
+		},
+		deleteUser(email) {
+			let pos = this.users.map(e => e.email).indexOf(email);
+			this.users.splice(pos, 1);
+		},
+		loadUsers() {
+			firebase.auth().currentUser.getIdToken(true)
+				.then(token => {
+					fetch('/api/users', {
+						method: "POST",
+						body: JSON.stringify({token: token}),
+						headers: {"Content-Type": "application/json"}
+					})
+					.then(data => data.json())
+					.then(json => {
+						this.$emit('update:storedUsers', json);
+						this.users = json;
+					})
+				})
 		}
 	}
 

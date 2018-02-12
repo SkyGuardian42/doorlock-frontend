@@ -30,6 +30,7 @@ export default {
 	}},
 	methods: {
 		changeRole() {
+			this.user.admin = !this.user.admin;
 			firebase.auth().currentUser.getIdToken(true)
 			.then(token => {
 				fetch('/api/user', {
@@ -41,18 +42,12 @@ export default {
 					}),
 					headers: {"Content-Type": "application/json"}
 				})
-				.then(data => data.json())
-				.then(json => {
-					this.modalText = json.status;
-				})
 			})
 			.catch(e => this.modalText = e.message)
 		},
 		resetPassword() {
+			this.modalText = `"${this.user.name}" hat eine Email zur Passwortzurücksetzung erhalten`
 			firebase.auth().sendPasswordResetEmail(this.user.email)
-			.then(()=>{
-				this.modalText = `"${this.user.name}" hat eine Email zur Passwortzurücksetzung erhalten`
-			})
 			.catch(e => this.modalText = e.message)
 		},
 		deleteUser(accepted) {
@@ -63,6 +58,7 @@ export default {
 			} else {
 				firebase.auth().currentUser.getIdToken(true)
 				.then(token => {
+					this.deleteText = '';
 					fetch('/api/user', {
 						method: "DELETE",
 						body: JSON.stringify({
@@ -73,8 +69,8 @@ export default {
 					})
 					.then(data => data.json())
 					.then(json => {
+						this.$emit('delete', this.user.email)
 						this.modalText = json.status;
-						this.deleteText = '';
 					})
 				})
 				.catch(e => this.modalText = e.message)
