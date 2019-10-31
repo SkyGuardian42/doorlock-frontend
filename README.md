@@ -1,5 +1,7 @@
 # Frontend des HGO-Türschlosses
 
+![Preview](https://user-images.githubusercontent.com/12611076/67965038-95ce4180-fc01-11e9-90f7-ceaff471f2b4.gif)
+
 > Vue Frontend fürs Türschloss des Informatikraums
 
 ## Build Setup
